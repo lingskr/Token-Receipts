@@ -56,4 +56,4 @@ HTML 输出目录：`~/.codex-receipts/projects/`
 
 ## 运行效果图（本地截图）
 
-![Codex Runtime Receipt](assets/images/codex-runtime-receipt.png)
+![Codex Runtime Receipt](codex-runtime-receipt.png)
