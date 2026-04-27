@@ -163,13 +163,11 @@ export class HtmlRenderer {
       padding: 20px 0;
     }
 
-    .logo-canvas {
+    .logo-svg {
       display: block;
       margin: 10px auto;
       width: 132px;
       height: 132px;
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
     }
 
     .separator {
@@ -410,7 +408,7 @@ export class HtmlRenderer {
   <div class="receipt-container">
     <div class="receipt">
       <div class="header">
-        <canvas id="receipt-logo" class="logo-canvas" width="132" height="132"></canvas>
+        ${this.renderCodexPixelLogoSvg()}
         <div class="meta">
           <div class="meta-row">
             <div>Location</div><div class="dots">....................</div><div class="value">${this.escapeHtml(data.location)}</div>
@@ -492,70 +490,6 @@ ${JSON.stringify(shareableData, null, 2)}
     console.log('Session:', '${this.escapeHtml(data.transcriptData.sessionSlug)}');
     console.log('Cost:', '${totalCostText}');
     console.log('Press ESC to close');
-
-    function drawCodexPixelLogo() {
-      const canvas = document.getElementById("receipt-logo");
-      if (!canvas) return;
-
-      const GRID = 22;
-      const BLOCK = 6;
-      canvas.width = GRID * BLOCK;
-      canvas.height = GRID * BLOCK;
-
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      const circles = [
-        [11, 11, 7.8],
-        [11, 4, 4.0],
-        [5, 6, 3.3],
-        [17, 6, 3.3],
-        [2.8, 11, 3.2],
-        [19.2, 11, 3.2],
-        [5, 16, 3.3],
-        [17, 16, 3.3],
-        [11, 18, 3.8],
-      ];
-
-      function inCloud(cx, cy) {
-        return circles.some(([x, y, r]) => (cx - x) ** 2 + (cy - y) ** 2 <= r * r);
-      }
-
-      const symbol = new Set();
-      const chevron = [
-        [8, 5], [8, 6],
-        [9, 6], [9, 7],
-        [10, 7], [10, 8],
-        [11, 8], [11, 9],
-        [12, 7], [12, 8],
-        [13, 6], [13, 7],
-        [14, 5], [14, 6],
-      ];
-      chevron.forEach(([r, c]) => symbol.add(r + "," + c));
-
-      for (let r = 10; r <= 11; r++) {
-        for (let c = 12; c <= 17; c++) {
-          symbol.add(r + "," + c);
-        }
-      }
-
-      ctx.fillStyle = "#f8f8f8";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      for (let row = 0; row < GRID; row++) {
-        for (let col = 0; col < GRID; col++) {
-          const cx = col + 0.5;
-          const cy = row + 0.5;
-          if (!inCloud(cx, cy)) continue;
-
-          const isCutout = symbol.has(row + "," + col);
-          ctx.fillStyle = isCutout ? "#f8f8f8" : "#000000";
-          ctx.fillRect(col * BLOCK, row * BLOCK, BLOCK, BLOCK);
-        }
-      }
-    }
-
-    drawCodexPixelLogo();
 
     async function shareReceipt() {
       const btn = document.getElementById('share-btn');
@@ -681,6 +615,57 @@ ${JSON.stringify(shareableData, null, 2)}
     }
 
     return "Codex";
+  }
+
+  private renderCodexPixelLogoSvg(): string {
+    const grid = 22;
+    const block = 6;
+    const circles: Array<[number, number, number]> = [
+      [11, 11, 7.8],
+      [11, 4, 4.0],
+      [5, 6, 3.3],
+      [17, 6, 3.3],
+      [2.8, 11, 3.2],
+      [19.2, 11, 3.2],
+      [5, 16, 3.3],
+      [17, 16, 3.3],
+      [11, 18, 3.8],
+    ];
+
+    const symbol = new Set<string>();
+    const chevron: Array<[number, number]> = [
+      [8, 5], [8, 6],
+      [9, 6], [9, 7],
+      [10, 7], [10, 8],
+      [11, 8], [11, 9],
+      [12, 7], [12, 8],
+      [13, 6], [13, 7],
+      [14, 5], [14, 6],
+    ];
+    for (const [r, c] of chevron) {
+      symbol.add(`${r},${c}`);
+    }
+    for (let r = 10; r <= 11; r++) {
+      for (let c = 12; c <= 17; c++) {
+        symbol.add(`${r},${c}`);
+      }
+    }
+
+    const inCloud = (cx: number, cy: number): boolean =>
+      circles.some(([x, y, r]) => (cx - x) ** 2 + (cy - y) ** 2 <= r * r);
+
+    const rects: string[] = [];
+    for (let row = 0; row < grid; row++) {
+      for (let col = 0; col < grid; col++) {
+        const cx = col + 0.5;
+        const cy = row + 0.5;
+        if (!inCloud(cx, cy)) continue;
+        if (symbol.has(`${row},${col}`)) continue;
+        rects.push(`<rect x="${col * block}" y="${row * block}" width="${block}" height="${block}" fill="#000"/>`);
+      }
+    }
+
+    return `<svg class="logo-svg" viewBox="0 0 ${grid * block} ${grid * block}" xmlns="http://www.w3.org/2000/svg" aria-label="Codex pixel logo">${rects.join('')}</svg>`;
   }
 
   private formatTotalCost(data: ReceiptData): string {
