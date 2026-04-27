@@ -53,3 +53,7 @@ HTML 输出目录：`~/.codex-receipts/projects/`
 ## 仓库
 
 [https://github.com/lingskr/Token-Receipts](https://github.com/lingskr/Token-Receipts)
+
+## 本地图片展示
+
+![Local Capture](assets/images/codex-local-capture.png)
