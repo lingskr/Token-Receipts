@@ -54,6 +54,6 @@ HTML 输出目录：`~/.codex-receipts/projects/`
 
 [https://github.com/lingskr/Token-Receipts](https://github.com/lingskr/Token-Receipts)
 
-## 运行效果图
+## 运行效果图（本地截图）
 
 ![Codex Runtime Receipt](assets/images/codex-runtime-receipt.png)
