@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>Codex Pixel Logo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      gap: 24px;
+      font-family: 'Courier New', monospace;
+    }
+    canvas {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: #999;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="label">CODEX · PIXEL · EDITION</div>
+
+  <script>
+    const GRID  = 22;   // 22×22 logical pixels
+    const BLOCK = 20;   // each logical pixel = 20px on screen
+
+    const canvas = document.getElementById('c');
+    canvas.width  = GRID * BLOCK;
+    canvas.height = GRID * BLOCK;
+    const ctx = canvas.getContext('2d');
+
+    /* ── Cloud shape: union of filled circles ── */
+    const circles = [
+      // cx, cy, r  (in grid-pixel units)
+      [11, 11, 7.8],    // main body
+      [11,  4,  4.0],   // top bump
+      [ 5,  6,  3.3],   // top-left bump
+      [17,  6,  3.3],   // top-right bump
+      [ 2.8, 11, 3.2],  // left bump
+      [19.2, 11, 3.2],  // right bump
+      [ 5,  16,  3.3],  // bottom-left bump
+      [17,  16,  3.3],  // bottom-right bump
+      [11,  18,  3.8],  // bottom bump
+    ];
+
+    function inCloud(cx, cy) {
+      return circles.some(([x, y, r]) => (cx - x) ** 2 + (cy - y) ** 2 <= r * r);
+    }
+
+    /* ── Symbol pixels (white cutouts) ── */
+    // ">" chevron: 2-pixel-thick arms, 7 rows tall
+    // Each entry: [row, col]
+    const symbol = new Set();
+
+    const chevron = [
+      [8,  5], [8,  6],
+      [9,  6], [9,  7],
+      [10, 7], [10, 8],
+      [11, 8], [11, 9],   // tip
+      [12, 7], [12, 8],
+      [13, 6], [13, 7],
+      [14, 5], [14, 6],
+    ];
+    chevron.forEach(([r, c]) => symbol.add(`${r},${c}`));
+
+    // "–" dash: 2 pixels tall, 6 wide
+    for (let r = 10; r <= 11; r++) {
+      for (let c = 12; c <= 17; c++) {
+        symbol.add(`${r},${c}`);
+      }
+    }
+
+    /* ── Render ── */
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let row = 0; row < GRID; row++) {
+      for (let col = 0; col < GRID; col++) {
+        const cx = col + 0.5;
+        const cy = row + 0.5;
+
+        if (inCloud(cx, cy)) {
+          const isWhite = symbol.has(`${row},${col}`);
+          ctx.fillStyle = isWhite ? '#ffffff' : '#000000';
+          ctx.fillRect(col * BLOCK, row * BLOCK, BLOCK, BLOCK);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
